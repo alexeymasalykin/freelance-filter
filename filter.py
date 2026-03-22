@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import logging
 import re
+
+log = logging.getLogger(__name__)
 
 
 def parse_price(text: str) -> float | None:
@@ -46,9 +49,16 @@ def should_forward(text: str, *, min_price: float, stop_words: list[str]) -> boo
     for word in stop_words:
         pattern = _build_stop_pattern(word)
         if pattern.search(text):
+            log.info("REJECTED: stop word '%s' found", word)
             return False
 
     price = parse_price(text)
     if price is None:
+        log.info("PASSED: no price found, forwarding")
         return True
-    return price >= min_price
+    if price < min_price:
+        log.info("REJECTED: price %.0f < min %.0f", price, min_price)
+        return False
+
+    log.info("PASSED: price %.0f >= min %.0f", price, min_price)
+    return True
