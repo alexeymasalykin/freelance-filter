@@ -86,3 +86,21 @@ class TestShouldForwardStopWords:
     def test_passes_clean_message(self) -> None:
         msg = "Создать React приложение\n💰 Цена: 50000.0 RUB"
         assert should_forward(msg, min_price=5000, stop_words=STOP_WORDS) is True
+
+
+class TestShouldForwardPrice:
+    def test_blocks_low_price(self) -> None:
+        msg = "Простая задача\n💰 Цена: 1500.0 RUB"
+        assert should_forward(msg, min_price=5000, stop_words=[]) is False
+
+    def test_passes_exact_min_price(self) -> None:
+        msg = "Задача\n💰 Цена: 5000.0 RUB"
+        assert should_forward(msg, min_price=5000, stop_words=[]) is True
+
+    def test_passes_above_min_price(self) -> None:
+        msg = "Задача\n💰 Цена: 50000.0 RUB"
+        assert should_forward(msg, min_price=5000, stop_words=[]) is True
+
+    def test_passes_when_no_price(self) -> None:
+        msg = "Задача без указания цены"
+        assert should_forward(msg, min_price=5000, stop_words=[]) is True
