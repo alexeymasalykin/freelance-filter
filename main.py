@@ -103,6 +103,13 @@ async def main() -> None:
 
     await client.start(phone=config.PHONE)
 
+    # Cache group entity so Telethon can resolve the ID
+    try:
+        await client.get_dialogs()
+        log.info("Dialogs cached, group entity should be available")
+    except Exception:
+        log.exception("Failed to cache dialogs")
+
     # Run both Telethon userbot and aiogram bot concurrently
     tasks = [client.run_until_disconnected()]
     if tg_bot:
