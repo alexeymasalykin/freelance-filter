@@ -19,3 +19,8 @@ STOP_WORDS: list[str] = [
 
 BOT_USERNAME: str = "Freelance_find_bot"
 SESSION_NAME: str = "data/freelance_filter"
+
+# LLM evaluation
+LLM_ENABLED: bool = os.getenv("LLM_ENABLED", "true").lower() in ("true", "1", "yes")
+OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
+LLM_MODEL: str = os.getenv("LLM_MODEL", "anthropic/claude-haiku-4-5")
