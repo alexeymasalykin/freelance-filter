@@ -44,8 +44,17 @@ def _build_stop_pattern(word: str) -> re.Pattern[str]:
     return re.compile(rf"\b{escaped}\b", re.IGNORECASE)
 
 
+def is_order(text: str) -> bool:
+    """Check if message is an actual order (not a service message from the bot)."""
+    return "📋 ID:" in text
+
+
 def should_forward(text: str, *, min_price: float, stop_words: list[str]) -> bool:
     """Check if message passes all filters and should be forwarded."""
+    if not is_order(text):
+        log.info("SKIPPED: not an order message")
+        return False
+
     for word in stop_words:
         pattern = _build_stop_pattern(word)
         if pattern.search(text):
