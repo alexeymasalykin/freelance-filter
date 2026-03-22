@@ -1,0 +1,10 @@
+services:
+  freelance-filter:
+    build: .
+    container_name: freelance-filter
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    stdin_open: true
+    tty: true
