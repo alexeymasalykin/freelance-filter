@@ -70,7 +70,7 @@ async def handler(event: events.NewMessage.Event) -> None:
             keyboard = build_keyboard(text, result.response)
             try:
                 await tg_bot.send_message(
-                    config.GROUP_ID, eval_msg, reply_markup=keyboard
+                    config.BOT_API_GROUP_ID, eval_msg, reply_markup=keyboard
                 )
                 log.info("EVALUATION + RESPONSE sent via bot")
             except Exception:

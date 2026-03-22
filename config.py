@@ -8,7 +8,15 @@ load_dotenv()
 API_ID: int = int(os.environ["API_ID"])
 API_HASH: str = os.environ["API_HASH"]
 PHONE: str = os.environ["PHONE"]
-GROUP_ID: int = int(os.environ["GROUP_ID"])
+_raw_group_id: int = int(os.environ["GROUP_ID"])
+# Telethon uses -100XXXXXXXXXX format, Bot API uses -XXXXXXXXXX
+# Normalize: store Telethon format, derive Bot API format
+if str(_raw_group_id).startswith("-100"):
+    GROUP_ID: int = _raw_group_id
+    BOT_API_GROUP_ID: int = int("-" + str(_raw_group_id)[4:])
+else:
+    GROUP_ID: int = int("-100" + str(_raw_group_id).lstrip("-"))
+    BOT_API_GROUP_ID: int = _raw_group_id
 MIN_PRICE: float = float(os.getenv("MIN_PRICE", "5000"))
 STOP_WORDS: list[str] = [
     w.strip() for w in os.getenv(
