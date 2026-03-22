@@ -25,6 +25,19 @@ client = TelegramClient(config.SESSION_NAME, config.API_ID, config.API_HASH)
 _start_time = time.time()
 
 
+def _extract_order_url(message: object) -> str | None:
+    """Extract order URL from inline keyboard buttons."""
+    if not hasattr(message, "reply_markup") or message.reply_markup is None:
+        return None
+    if not hasattr(message.reply_markup, "rows"):
+        return None
+    for row in message.reply_markup.rows:
+        for button in row.buttons:
+            if hasattr(button, "url") and button.url:
+                return button.url
+    return None
+
+
 @client.on(events.NewMessage(from_users=config.BOT_USERNAME))
 async def handler(event: events.NewMessage.Event) -> None:
     # Skip messages that arrived before bot started (queued offline messages)
@@ -39,6 +52,11 @@ async def handler(event: events.NewMessage.Event) -> None:
     if not should_forward(text, min_price=config.MIN_PRICE, stop_words=config.STOP_WORDS):
         log.info("FILTERED: message did not pass filters")
         return
+
+    # Extract URLs from inline buttons before forwarding
+    order_url = _extract_order_url(event.message)
+    if order_url:
+        log.info("Found order URL: %s", order_url)
 
     try:
         await client.forward_messages(config.GROUP_ID, event.message)
@@ -63,6 +81,8 @@ async def handler(event: events.NewMessage.Event) -> None:
         parts = [f"🤖 Оценка:\n{result.evaluation}"]
         if result.response:
             parts.append(f"📨 Отклик:\n{result.response}")
+        if order_url:
+            parts.append(f"🔗 Ссылка на заказ:\n{order_url}")
         eval_msg = "\n\n".join(parts)
 
         # Send via bot (for inline buttons) if available and response exists
