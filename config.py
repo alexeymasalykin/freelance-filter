@@ -24,3 +24,7 @@ SESSION_NAME: str = "data/freelance_filter"
 LLM_ENABLED: bool = os.getenv("LLM_ENABLED", "true").lower() in ("true", "1", "yes")
 OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
 LLM_MODEL: str = os.getenv("LLM_MODEL", "anthropic/claude-haiku-4-5")
+
+# Response generation
+GENERATE_RESPONSE: bool = os.getenv("GENERATE_RESPONSE", "true").lower() in ("true", "1", "yes")
+BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
