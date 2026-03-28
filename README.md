@@ -1,5 +1,7 @@
 # Freelance Filter
 
+[![CI](https://github.com/alexeymasalykin/freelance-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/alexeymasalykin/freelance-filter/actions/workflows/ci.yml)
+
 Telegram-бот для автоматической фильтрации фриланс-заказов. Слушает канал [@Freelance_find_bot](https://t.me/Freelance_find_bot) через Telethon userbot, фильтрует по цене, стоп-словам и приоритету, пересылает подходящие заказы в приватную группу с LLM-оценкой и готовым откликом.
 
 ## Как это работает
