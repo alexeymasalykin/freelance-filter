@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import signal
 import sys
 import time
 from datetime import datetime, timezone
@@ -234,6 +235,10 @@ async def main() -> None:
         log.info("Dialogs cached, group entity should be available")
     except (ConnectionError, ValueError):
         log.exception("Failed to cache dialogs")
+
+    loop = asyncio.get_running_loop()
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, _shutdown_event.set)
 
     tasks = [client.run_until_disconnected(), _daily_stats()]
     if tg_bot:

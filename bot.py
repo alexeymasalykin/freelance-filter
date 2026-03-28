@@ -104,7 +104,7 @@ async def handle_regenerate(callback: CallbackQuery) -> None:
     keyboard = build_keyboard(data["order"], new_response)
     try:
         await msg.edit_text(new_text, reply_markup=keyboard)
-    except Exception:
+    except (ConnectionError, ValueError):
         log.exception("Failed to edit message with new response")
 
 
