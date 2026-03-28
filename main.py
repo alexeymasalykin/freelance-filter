@@ -4,7 +4,6 @@ import asyncio
 import logging
 import re
 import signal
-import sys
 import time
 from datetime import datetime, timezone
 

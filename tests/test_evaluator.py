@@ -1,6 +1,6 @@
 from unittest.mock import patch, MagicMock
 
-from evaluator import evaluate_order, regenerate_response, _parse_result, EvaluationResult
+from evaluator import evaluate_order, regenerate_response, _parse_result
 
 
 class TestParseResult:
