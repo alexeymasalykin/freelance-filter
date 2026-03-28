@@ -25,3 +25,10 @@ jobs:
 
       - name: Tests
         run: pytest -v
+        env:
+          API_ID: "12345"
+          API_HASH: "0123456789abcdef0123456789abcdef"
+          PHONE: "+70000000000"
+          GROUP_ID: "-1001234567890"
+          LLM_ENABLED: "false"
+          GENERATE_RESPONSE: "false"
