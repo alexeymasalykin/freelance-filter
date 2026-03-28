@@ -71,7 +71,7 @@ def _parse_result(text: str) -> EvaluationResult:
     response_marker = "📨 Отклик:"
     recommendation = "НЕ БРАТЬ"
 
-    for label in ("БРАТЬ", "УТОЧНИТЬ", "НЕ БРАТЬ"):
+    for label in ("НЕ БРАТЬ", "УТОЧНИТЬ", "БРАТЬ"):
         if label in text:
             recommendation = label
             break
