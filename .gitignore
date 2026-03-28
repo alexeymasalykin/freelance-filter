@@ -5,3 +5,6 @@ __pycache__/
 .venv/
 .mypy_cache/
 .pytest_cache/
+BEFORE_GITHUB.md
+docs/superpowers/
+freelance_filter_task.md
