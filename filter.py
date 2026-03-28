@@ -4,6 +4,9 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+
+import yaml
 
 log = logging.getLogger(__name__)
 
@@ -23,98 +26,22 @@ class FilterResult:
     reject_reason: str = ""
 
 
-# --- Stop words (Level 2) ---
-# Partial matches — if the pattern is found anywhere in text, reject
-STOP_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(p, re.IGNORECASE)
-    for p in [
-        r"(?<!\w)seo(?!\w)",
-        r"продвижен",
-        r"(?<!\w)битрикс(?!\w)",
-        r"(?<!\w)bitrix(?!\w)",
-        r"(?<!\w)amocrm(?!\w)",
-        r"(?<!\w)amo(?!\w)",
-        r"(?<!\w)1с(?!\w)",
-        r"(?<!\w)1c(?!\w)",
-        r"контент.?менедж",
-        r"логотип",
-        r"копирайт",
-        r"(?<!\w)smm(?!\w)",
-        r"реклам",
-        r"stable\s*diffusion",
-        r"нейроснимк",
-        r"тестировщик",
-        r"парсер",
-        r"парсинг",
-        r"интернет.?магазин",
-        r"каталог",
-        r"(?<!\w)mod.?x(?!\w)",
-        r"(?<!\w)osclass(?!\w)",
-        r"(?<!\w)wordpress(?!\w)",
-        r"(?<!\w)wix(?!\w)",
-        r"(?<!\w)tilda(?!\w)",
-        r"(?<!\w)тильд",
-        r"(?<!\w)opencart(?!\w)",
-        r"ролик",
-        r"видеопродакшн",
-        r"мобильное\s+приложение",
-        r"(?<!\w)ios(?!\w)",
-        r"(?<!\w)android(?!\w)",
-        r"(?<!\w)c/c\+\+(?!\w)",
-        r"(?<!\w)php(?!\w)",
-        r"ведение\s+магазин",
-        r"скопировать\s+сайт",
-        r"копия\s+сайта",
-        r"копирование\s+сайт",
-        r"key\s*collector",
-        r"минусовк",
-        r"накрутк",
-        r"вакансия",
-        r"удалённая\s+работа",
-        r"график\s+5/2",
-        r"оклад",
-    ]
-]
+def _load_all_patterns() -> dict[str, list[re.Pattern[str]]]:
+    """Load all pattern lists from patterns.yml (read file once)."""
+    config_path = Path(__file__).parent / "patterns.yml"
+    with open(config_path) as f:
+        data: dict[str, list[str]] = yaml.safe_load(f)
+    return {
+        key: [re.compile(p, re.IGNORECASE) for p in patterns]
+        for key, patterns in data.items()
+    }
 
-# --- Priority keywords (Level 3) ---
-HOT_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(p, re.IGNORECASE)
-    for p in [
-        r"лендинг",
-        r"landing",
-        r"одностраничн",
-        r"визитк",
-        r"верстк",
-        r"(?<!\w)html(?!\w)",
-        r"(?<!\w)css(?!\w)",
-        r"фронтенд",
-        r"(?<!\w)frontend(?!\w)",
-        r"(?<!\w)front.?end(?!\w)",
-        r"(?<!\w)react(?!\w)",
-        r"(?<!\w)next\.?js(?!\w)",
-        r"(?<!\w)nuxt(?!\w)",
-        r"(?<!\w)vue(?!\w)",
-        r"(?<!\w)tailwind(?!\w)",
-        r"редизайн\s+сайт",
-    ]
-]
 
-INTERESTING_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(p, re.IGNORECASE)
-    for p in [
-        r"бот",
-        r"(?<!\w)telegram(?!\w)",
-        r"телеграм",
-        r"чат.?бот",
-        r"(?<!\w)fastapi(?!\w)",
-        r"(?<!\w)python(?!\w)",
-        r"(?<!\w)ai(?!\w)",
-        r"ии.?агент",
-        r"нейросет",
-        r"(?<!\w)gpt(?!\w)",
-        r"(?<!\w)openai(?!\w)",
-    ]
-]
+_PATTERNS = _load_all_patterns()
+
+STOP_PATTERNS: list[re.Pattern[str]] = _PATTERNS["stop"]
+HOT_PATTERNS: list[re.Pattern[str]] = _PATTERNS["hot"]
+INTERESTING_PATTERNS: list[re.Pattern[str]] = _PATTERNS["interesting"]
 
 MIN_PRICE_HOT: float = 10_000
 MIN_PRICE_INTERESTING: float = 15_000
