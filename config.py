@@ -8,22 +8,8 @@ load_dotenv()
 API_ID: int = int(os.environ["API_ID"])
 API_HASH: str = os.environ["API_HASH"]
 PHONE: str = os.environ["PHONE"]
-_raw_group_id: int = int(os.environ["GROUP_ID"])
-# Telethon uses -100XXXXXXXXXX format, Bot API uses -XXXXXXXXXX
-# Normalize: store Telethon format, derive Bot API format
-if str(_raw_group_id).startswith("-100"):
-    GROUP_ID: int = _raw_group_id
-    BOT_API_GROUP_ID: int = int("-" + str(_raw_group_id)[4:])
-else:
-    GROUP_ID: int = int("-100" + str(_raw_group_id).lstrip("-"))
-    BOT_API_GROUP_ID: int = _raw_group_id
-MIN_PRICE: float = float(os.getenv("MIN_PRICE", "5000"))
-STOP_WORDS: list[str] = [
-    w.strip() for w in os.getenv(
-        "STOP_WORDS",
-        "1С,Битрикс,Bitrix,WordPress,WP,Laravel,Java,Unity,n8n,Zapier,Tilda,Тильда,Wix,Webflow,Bubble,Shopify,OpenCart,Joomla,Drupal,ModX"
-    ).split(",") if w.strip()
-]
+GROUP_ID: int = int(os.environ["GROUP_ID"])
+BOT_API_GROUP_ID: int = GROUP_ID
 
 BOT_USERNAME: str = "Freelance_find_bot"
 SESSION_NAME: str = "data/freelance_filter"
@@ -36,3 +22,19 @@ LLM_MODEL: str = os.getenv("LLM_MODEL", "anthropic/claude-haiku-4-5")
 # Response generation
 GENERATE_RESPONSE: bool = os.getenv("GENERATE_RESPONSE", "true").lower() in ("true", "1", "yes")
 BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
+
+
+def validate() -> None:
+    missing = []
+    for var in ("API_ID", "API_HASH", "PHONE", "GROUP_ID"):
+        if not os.environ.get(var):
+            missing.append(var)
+    if missing:
+        raise SystemExit(f"Missing required env vars: {', '.join(missing)}")
+    if LLM_ENABLED and not OPENROUTER_API_KEY:
+        raise SystemExit("LLM_ENABLED=true but OPENROUTER_API_KEY not set")
+    if GENERATE_RESPONSE and not BOT_TOKEN:
+        raise SystemExit("GENERATE_RESPONSE=true but BOT_TOKEN not set")
+
+
+validate()
