@@ -24,7 +24,9 @@ jobs:
         run: ruff check .
 
       - name: Tests
-        run: pytest -v
+        run: |
+          mkdir -p data
+          pytest -v
         env:
           API_ID: "12345"
           API_HASH: "0123456789abcdef0123456789abcdef"
