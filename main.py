@@ -77,7 +77,7 @@ async def _get_order_url(message: Message) -> str | None:
             if url_match:
                 return url_match.group(0)
 
-    except Exception:
+    except (AttributeError, asyncio.TimeoutError, ConnectionError):
         log.exception("Failed to click get_url button")
 
     return None
@@ -123,10 +123,10 @@ async def handler(event: events.NewMessage.Event) -> None:
         await asyncio.sleep(e.seconds)
         try:
             await client.forward_messages(config.GROUP_ID, event.message)
-        except Exception:
+        except (ConnectionError, ValueError):
             log.exception("Failed to forward after FloodWait")
             return
-    except Exception:
+    except (ConnectionError, ValueError):
         log.exception("Failed to forward message")
         return
 
@@ -152,7 +152,7 @@ async def handler(event: events.NewMessage.Event) -> None:
                     config.BOT_API_GROUP_ID, eval_msg, reply_markup=keyboard
                 )
                 log.info("EVALUATION sent via bot")
-            except Exception:
+            except (ConnectionError, ValueError):
                 log.exception("Failed to send via bot, falling back to userbot")
                 await _send_via_userbot(eval_msg)
         else:
@@ -166,7 +166,7 @@ async def _send_via_userbot(text: str) -> None:
     try:
         await client.send_message(config.GROUP_ID, text)
         log.info("EVALUATION sent to group")
-    except Exception:
+    except (ConnectionError, ValueError):
         log.exception("Failed to send evaluation")
 
 
@@ -205,7 +205,7 @@ async def _daily_stats() -> None:
         if tg_bot:
             try:
                 await tg_bot.send_message(config.BOT_API_GROUP_ID, msg)
-            except Exception:
+            except (ConnectionError, ValueError):
                 log.exception("Failed to send stats via bot")
         else:
             await _send_via_userbot(msg)
@@ -227,7 +227,7 @@ async def main() -> None:
     try:
         await client.get_dialogs()
         log.info("Dialogs cached, group entity should be available")
-    except Exception:
+    except (ConnectionError, ValueError):
         log.exception("Failed to cache dialogs")
 
     tasks = [client.run_until_disconnected(), _daily_stats()]

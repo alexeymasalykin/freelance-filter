@@ -111,7 +111,7 @@ def _call_llm(messages: list[dict[str, str]]) -> str | None:
         result = response.choices[0].message.content
         log.info("LLM response received (%d chars)", len(result or ""))
         return result
-    except Exception:
+    except (ConnectionError, TimeoutError, ValueError):
         log.exception("LLM request failed")
         return None
 
