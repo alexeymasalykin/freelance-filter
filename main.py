@@ -26,6 +26,7 @@ log = logging.getLogger(__name__)
 
 client = TelegramClient(config.SESSION_NAME, config.API_ID, config.API_HASH)
 _start_time = time.time()
+_shutdown_event = asyncio.Event()
 
 # Daily stats counters
 _stats = {"total": 0, "rejected": 0, "passed": 0, "hot": 0, "interesting": 0, "other": 0}
@@ -192,7 +193,11 @@ async def _daily_stats() -> None:
             wait_seconds += 86400
 
         log.info("Next stats report in %.0f hours", wait_seconds / 3600)
-        await asyncio.sleep(wait_seconds)
+        try:
+            await asyncio.wait_for(_shutdown_event.wait(), timeout=wait_seconds)
+            break  # shutdown requested
+        except asyncio.TimeoutError:
+            pass  # time to send stats
 
         msg = (
             f"📊 Статистика за сутки\n\n"
@@ -236,9 +241,9 @@ async def main() -> None:
 
     try:
         await asyncio.gather(*tasks)
-    except KeyboardInterrupt:
+    finally:
+        _shutdown_event.set()
         log.info("Shutting down gracefully...")
-        sys.exit(0)
 
 
 if __name__ == "__main__":
