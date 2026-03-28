@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
+from collections import OrderedDict
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
@@ -16,30 +18,53 @@ bot = Bot(token=config.BOT_TOKEN) if config.BOT_TOKEN else None
 dp = Dispatcher()
 
 
+class CallbackStore:
+    """In-memory store for callback data with TTL and max size."""
+
+    def __init__(self, max_size: int = 100, ttl: int = 3600) -> None:
+        self._data: OrderedDict[int, tuple[float, dict[str, str]]] = OrderedDict()
+        self._counter: int = 0
+        self._max_size = max_size
+        self._ttl = ttl
+
+    def store(self, order_text: str, response_text: str) -> str:
+        self._counter += 1
+        self._cleanup()
+        self._data[self._counter] = (time.time(), {"order": order_text, "response": response_text})
+        return str(self._counter)
+
+    def get(self, key: str) -> dict[str, str] | None:
+        try:
+            entry = self._data.get(int(key))
+        except ValueError:
+            return None
+        if entry is None:
+            return None
+        ts, data = entry
+        if time.time() - ts > self._ttl:
+            self._data.pop(int(key), None)
+            return None
+        return data
+
+    def _cleanup(self) -> None:
+        now = time.time()
+        expired = [k for k, (ts, _) in self._data.items() if now - ts > self._ttl]
+        for k in expired:
+            del self._data[k]
+        while len(self._data) > self._max_size:
+            self._data.popitem(last=False)
+
+
+_store = CallbackStore()
+
+
 def build_keyboard(order_text: str, response_text: str) -> InlineKeyboardMarkup:
     """Build inline keyboard with regenerate button. Store data as callback_data."""
     # callback_data has 64 byte limit — store in memory instead
-    callback_id = _store_callback(order_text, response_text)
+    callback_id = _store.store(order_text, response_text)
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🔄 Другой вариант", callback_data=f"regen:{callback_id}")]
     ])
-
-
-# In-memory store for callback data (order text + current response)
-_callback_store: dict[str, dict[str, str]] = {}
-_counter = 0
-
-
-def _store_callback(order_text: str, response_text: str) -> str:
-    global _counter
-    _counter += 1
-    key = str(_counter)
-    _callback_store[key] = {"order": order_text, "response": response_text}
-    # Keep only last 100 entries to avoid memory leak
-    if len(_callback_store) > 100:
-        oldest = list(_callback_store.keys())[0]
-        del _callback_store[oldest]
-    return key
 
 
 @dp.callback_query(F.data.startswith("regen:"))
@@ -47,7 +72,7 @@ async def handle_regenerate(callback: CallbackQuery) -> None:
     """Handle inline button press — regenerate response."""
     callback_id = callback.data.split(":", 1)[1]
 
-    data = _callback_store.get(callback_id)
+    data = _store.get(callback_id)
     if not data:
         await callback.answer("Данные устарели, сгенерируйте оценку заново")
         return
