@@ -8,3 +8,5 @@ __pycache__/
 BEFORE_GITHUB.md
 docs/superpowers/
 freelance_filter_task.md
+.claude/
+CLAUDE.md
