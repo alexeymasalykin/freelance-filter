@@ -220,6 +220,7 @@ async def _daily_stats() -> None:
 
 
 async def main() -> None:
+    config.validate()
     log.info("Starting freelance filter bot...")
     log.info("Listening for messages from @%s", config.BOT_USERNAME)
     log.info("Forwarding to group %s", config.GROUP_ID)
